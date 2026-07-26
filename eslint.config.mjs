@@ -21,7 +21,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Standalone Chrome extension source — runs outside the Next app.
     "chrome-extension/**",
   ]),
 ]);
