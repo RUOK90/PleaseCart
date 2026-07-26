@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Cookie Injector",
+  "version": "1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAneesaWKwfemA93qVhNsADzcxg87ADpADaPge80m/Oq2vtBm1UC8ggWhwtjEKX/m5GOotxfqR0XUkqts0SXNpshQZGub+MYZ5oVjFizU6k/FF/Vk1dIqrRpadic9q1MONXkFNlrlaQLmC5AWvt99dpldrTVkqfjP5pm2uj4AnRkpXLoCbdtjktSNA9y91WEv7oOiDi346gD/UitJIegnfsaebYXl0j9FiMsNI1RJjKtrM9XN+kqxW2p6zptf4pW7LpDVxVYjU8kS9TgqgoHlRsTKtUzyUgPGqQFt+U4qKVuWSUZNvuPR9uHLht5mMAru8edfrCP8AZy7VTCp+QyWw+wIDAQAB",
+  "description": "Sets global_sid and opens the https://lottemartzetta.com/basket page.",
+  "permissions": ["cookies", "tabs", "declarativeNetRequestWithHostAccess"],
+  "host_permissions": ["https://lottemartzetta.com/*"],
+  "externally_connectable": {
+    "matches": ["http://localhost/*", "https://localhost/*"]
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
