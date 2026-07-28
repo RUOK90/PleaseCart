@@ -15,6 +15,16 @@
         "uriFormat": "%s",
         "webRoot": "${workspaceFolder}"
       }
+    },
+    {
+      "name": "Debug .mts file",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--import", "tsx"],
+      "program": "${file}",
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
     }
   ]
 }
