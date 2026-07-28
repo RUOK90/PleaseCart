@@ -1,11 +1,9 @@
 import { Product } from "@/dto/product";
-import { chromium } from "playwright";
-import { getCart, searchProducts } from "./lottemart-zetta";
+import { closeBrowser, getCart, searchProducts } from "./lottemart-zetta";
 
-const browser = await chromium.launch({ headless: false, channel: "chrome" });
 const queries = ["계란", "고추장", "제육"];
 const products = await Promise.all(
-  queries.map(async (query) => await searchProducts(browser, query)),
+  queries.map(async (query) => await searchProducts(query)),
 );
 
 const cartProducts: Product[] = [];
@@ -24,8 +22,8 @@ queries.forEach((query, queryIdx) => {
   console.log();
 });
 
-const global_sid = await getCart(browser, cartProducts);
+const global_sid = await getCart(cartProducts);
 
 console.log(global_sid);
 
-browser.close();
+await closeBrowser();
