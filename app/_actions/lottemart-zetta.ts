@@ -1,21 +1,25 @@
 "use server";
 
 import { Product } from "@/dto/product";
-import { type Browser, type Page } from "playwright";
+import { chromium, type Browser, type Page } from "playwright";
 
-export const createPage = async (
-  browser: Browser,
+let browserPromise: Promise<Browser> | null = null;
+
+export const getPage = async (
   userAgent: string = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
 ): Promise<Page> => {
+  if (!browserPromise) {
+    browserPromise = chromium.launch({ headless: true, channel: "chrome" });
+  }
+  const browser = await browserPromise;
   return await browser.newPage({ userAgent });
 };
 
 export const searchProducts = async (
-  browser: Browser,
   query: string,
   limit = 20,
 ): Promise<Product[]> => {
-  const page = await createPage(browser);
+  const page = await getPage();
 
   await page.goto("https://lottemartzetta.com");
 
@@ -109,11 +113,8 @@ export const searchProducts = async (
   return [...products.values()];
 };
 
-export const getCart = async (
-  browser: Browser,
-  products: Product[],
-): Promise<string> => {
-  const page = await createPage(browser);
+export const getCart = async (products: Product[]): Promise<string> => {
+  const page = await getPage();
 
   await page.goto("https://lottemartzetta.com");
 
@@ -143,4 +144,11 @@ export const getCart = async (
 
   const cookies = await page.context().cookies("https://lottemartzetta.com");
   return cookies.find((e) => e.name === "global_sid")!.value;
+};
+
+export const closeBrowser = async (): Promise<void> => {
+  if (!browserPromise) return;
+  const browser = await browserPromise;
+  browserPromise = null;
+  if (browser.isConnected()) await browser.close();
 };
