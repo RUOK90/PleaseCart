@@ -19,7 +19,7 @@ export const shopping = async (
   userInput: string,
   addChat: (chat: Chat) => void,
 ): Promise<string> => {
-  addChat({ role: "user", content: userInput });
+  addChat({ type: "text", role: "user", content: userInput });
 
   let globalSid = "";
   for (let dishAttempt = 0; dishAttempt < 3; dishAttempt++) {
@@ -30,13 +30,21 @@ export const shopping = async (
       failedDishes,
     );
     recommendedDishes.push(recommendDishResponse.dish);
-    addChat({ role: "agent", content: recommendDishResponse.response });
+    addChat({
+      type: "text",
+      role: "agent",
+      content: recommendDishResponse.response,
+    });
 
     // 재료 결정
     const getIngredientsResponse = await getIngredients(
       recommendDishResponse.dish,
     );
-    addChat({ role: "agent", content: getIngredientsResponse.response });
+    addChat({
+      type: "text",
+      role: "agent",
+      content: getIngredientsResponse.response,
+    });
 
     // 아직 상품 선택이 완료되지 못한 재료들
     let unresolvedIngredients: UnresolvedIngredient[] =
@@ -56,7 +64,11 @@ export const shopping = async (
 
       // 재료 하나씩 검색과 상품 선택을 순차 수행
       for (const { ingredient, failedIngredients } of unresolvedIngredients) {
-        addChat({ role: "agent", content: `${ingredient} 검색 중...` });
+        addChat({
+          type: "text",
+          role: "agent",
+          content: `${ingredient} 검색 중...`,
+        });
 
         const candidateProducts = await searchProducts(ingredient);
         const selectProductResponse = await selectProduct(
@@ -74,6 +86,7 @@ export const shopping = async (
           if (product) {
             selectedProducts.push(product);
             addChat({
+              type: "text",
               role: "agent",
               content: selectProductResponse.response,
             });
@@ -87,6 +100,7 @@ export const shopping = async (
             failedIngredients: [...failedIngredients, ingredient],
           });
           addChat({
+            type: "text",
             role: "agent",
             content: selectProductResponse.response,
           });
@@ -95,6 +109,7 @@ export const shopping = async (
 
         isDishFailed = true;
         addChat({
+          type: "text",
           role: "agent",
           content: selectProductResponse.response,
         });
@@ -113,9 +128,9 @@ export const shopping = async (
     }
 
     // 선택된 상품 장바구니에 담기
-    addChat({ role: "agent", content: "장바구니에 담는 중..." });
+    addChat({ type: "text", role: "agent", content: "장바구니에 담는 중..." });
     globalSid = await getCart(selectedProducts);
-    addChat({ role: "agent", content: `장바구니에 다 담았어요! ${globalSid}` });
+    addChat({ type: "cart", role: "agent", globalSid });
     break;
   }
 

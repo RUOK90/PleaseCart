@@ -3,9 +3,11 @@
 import { Chat } from "@/app/_dto/chat";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { JSX } from "react/jsx-runtime";
+import { openCart } from "./_lib/cart";
 import { shopping } from "./_lib/shopping";
 
 const GREETING: Chat = {
+  type: "text",
   role: "agent",
   content:
     "어서 오세요~ 오늘은 뭐가 드시고 싶으세요? 말만 하면 메뉴 골라서 재료까지 싹 담아드릴게요!",
@@ -60,7 +62,15 @@ export default function Home(): JSX.Element {
         >
           {chats.map((chat, i) => (
             <div key={i} className="flex flex-none animate-pop-in flex-col">
-              {chat.role === "user" ? (
+              {chat.type === "cart" ? (
+                <button
+                  type="button"
+                  onClick={() => openCart(chat.globalSid)}
+                  className="cursor-pointer self-start rounded-full bg-ink px-6 py-2.5 text-[15px] font-bold text-cream shadow-[3px_3px_0_rgba(199,62,29,0.4)] hover:bg-ink-hover"
+                >
+                  장바구니 확인하기
+                </button>
+              ) : chat.role === "user" ? (
                 <div className="max-w-200 self-end rounded-[18px_18px_4px_18px] bg-ink px-5 py-3.5 text-[17px]/[1.6] font-medium text-cream">
                   {chat.content}
                 </div>

@@ -9,7 +9,7 @@ export const getPage = async (
   userAgent: string = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
 ): Promise<Page> => {
   if (!browserPromise) {
-    browserPromise = chromium.launch({ headless: false, channel: "chrome" });
+    browserPromise = chromium.launch({ headless: true, channel: "chrome" });
   }
   const browser = await browserPromise;
   return await browser.newPage({ userAgent });
