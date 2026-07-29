@@ -1,65 +1,142 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { Chat } from "@/app/_dto/chat";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { JSX } from "react/jsx-runtime";
+import { getTotalPrice, openCart } from "./_lib/cart";
+import { shopping } from "./_lib/shopping";
+
+const GREETING: Chat = {
+  type: "text",
+  role: "agent",
+  content:
+    "어서 오세요~ 오늘은 뭐가 드시고 싶으세요? 말만 하면 메뉴 골라서 재료까지 싹 담아드릴게요!",
+};
+
+export default function Home(): JSX.Element {
+  const [chats, setChats] = useState<Chat[]>([GREETING]);
+  const [userInput, setUserInput] = useState("");
+  const [isBusy, setIsBusy] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // 메시지가 늘어날 때마다 맨 아래로
+  useEffect(() => {
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [chats, isBusy]);
+
+  const send = async (): Promise<void> => {
+    const trimmedUserInput = userInput.trim();
+    if (!trimmedUserInput || isBusy) return;
+
+    setUserInput("");
+    setIsBusy(true);
+    await shopping(trimmedUserInput, (chat) =>
+      setChats((prev) => [...prev, chat]),
+    );
+    setIsBusy(false);
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
+    // 조합을 확정하는 Enter는 흘려보낸다. 여기서 전송하면 확정된 글자가 입력창에 남는다
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) send();
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-screen flex-col bg-paper">
+      <header className="flex flex-none items-center gap-4 border-b-4 border-market-red bg-ink px-20 py-3.5">
+        <div className="flex size-11 items-center justify-center rounded-full border-2 border-dashed border-cream bg-market-red text-[18px] font-extrabold text-cream">
+          장
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+        <div className="text-2xl font-extrabold tracking-[-0.6px] text-cream">
+          장바구니를 부탁해
+        </div>
+        <div className="text-[15px] font-medium text-market-yellow">
+          ~ 오늘도 싱싱한 게 들어왔어요 ~
+        </div>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col bg-[repeating-linear-gradient(0deg,var(--color-paper)_0_46px,var(--color-paper-line)_46px_48px)]">
+        <div
+          ref={listRef}
+          className="mx-auto scrollbar-hidden flex w-full max-w-280 flex-1 flex-col gap-4 overflow-y-auto px-8 py-6"
+        >
+          {chats.map((chat, i) => (
+            <div key={i} className="flex flex-none animate-pop-in flex-col">
+              {chat.type === "cart" ? (
+                <div className="flex flex-wrap items-center gap-3.5">
+                  <div className="rounded-full border-[1.5px] border-success-border bg-success-surface px-4.5 py-2 text-[15px] font-medium text-success-foreground">
+                    재료 {chat.products.length}가지, 장바구니에 몽땅 담아뒀어요!
+                    총 <b>{getTotalPrice(chat.products)}</b>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openCart(chat.globalSid)}
+                    className="cursor-pointer rounded-full bg-ink px-6 py-2.5 text-[15px] font-bold text-cream shadow-[3px_3px_0_rgba(199,62,29,0.4)] hover:bg-ink-hover"
+                  >
+                    장바구니 확인하기
+                  </button>
+                </div>
+              ) : chat.type === "recipe" ? (
+                <div className="max-w-200 self-start rounded-md border-2 border-ink bg-surface px-6 py-5 shadow-[4px_5px_0_rgba(43,58,85,0.15)]">
+                  <div className="text-[23px] font-extrabold tracking-[-0.5px] text-ink">
+                    {chat.dish}
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-x-3.5 gap-y-2.5">
+                    {chat.products.map((product) => (
+                      <a
+                        key={product.id}
+                        href={`https://lottemartzetta.com/products/${product.id}/details`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2.5 rounded-md border-[1.5px] border-dashed border-paper-border-dashed bg-paper px-3 py-2.5 hover:border-market-red"
+                      >
+                        <span className="text-[15px] font-medium text-foreground">
+                          {product.name}
+                        </span>
+                        <span className="ml-auto flex-none rounded-[3px] border-[1.5px] border-market-red bg-white px-2 py-0.5 text-[14px] font-bold text-market-red">
+                          {product.price}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : chat.role === "user" ? (
+                <div className="max-w-200 self-end rounded-[18px_18px_4px_18px] bg-ink px-5 py-3.5 text-[17px]/[1.6] font-medium text-cream">
+                  {chat.content}
+                </div>
+              ) : (
+                <div className="max-w-200 self-start rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-5 py-4 text-[17px]/[1.65] font-medium text-foreground shadow-[2px_3px_0_rgba(43,58,85,0.08)]">
+                  {chat.content}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {isBusy && (
+            <div className="flex flex-none animate-pop-in">
+              <div className="flex items-center gap-1.5 rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-6 py-5">
+                <span className="size-2 animate-blink rounded-full bg-market-red" />
+                <span className="size-2 animate-blink rounded-full bg-market-red [animation-delay:0.2s]" />
+                <span className="size-2 animate-blink rounded-full bg-market-red [animation-delay:0.4s]" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mx-auto w-full max-w-280 flex-none px-8 pt-4 pb-6">
+          <div className="flex items-center rounded-full border-2 border-ink bg-surface px-6 py-3.5 shadow-[3px_4px_0_rgba(43,58,85,0.12)]">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="뭐가 드시고 싶은지 말만 하세요~"
+              className="flex-1 border-none bg-transparent text-[17px] font-medium text-foreground outline-none placeholder:text-base placeholder:font-normal placeholder:text-placeholder"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
