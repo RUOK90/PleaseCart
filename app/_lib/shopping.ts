@@ -116,6 +116,7 @@ export const shopping = async (
     addChat({ role: "agent", content: "장바구니에 담는 중..." });
     globalSid = await getCart(selectedProducts);
     addChat({ role: "agent", content: `장바구니에 다 담았어요! ${globalSid}` });
+    break;
   }
 
   await closeBrowser();
