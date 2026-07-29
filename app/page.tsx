@@ -3,7 +3,7 @@
 import { Chat } from "@/app/_dto/chat";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { JSX } from "react/jsx-runtime";
-import { openCart } from "./_lib/cart";
+import { getTotalPrice, openCart } from "./_lib/cart";
 import { shopping } from "./_lib/shopping";
 
 const GREETING: Chat = {
@@ -64,13 +64,43 @@ export default function Home(): JSX.Element {
           {chats.map((chat, i) => (
             <div key={i} className="flex flex-none animate-pop-in flex-col">
               {chat.type === "cart" ? (
-                <button
-                  type="button"
-                  onClick={() => openCart(chat.globalSid)}
-                  className="cursor-pointer self-start rounded-full bg-ink px-6 py-2.5 text-[15px] font-bold text-cream shadow-[3px_3px_0_rgba(199,62,29,0.4)] hover:bg-ink-hover"
-                >
-                  장바구니 확인하기
-                </button>
+                <div className="flex flex-wrap items-center gap-3.5">
+                  <div className="rounded-full border-[1.5px] border-success-border bg-success-surface px-4.5 py-2 text-[15px] font-medium text-success-foreground">
+                    재료 {chat.products.length}가지, 장바구니에 몽땅 담아뒀어요!
+                    총 <b>{getTotalPrice(chat.products)}</b>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openCart(chat.globalSid)}
+                    className="cursor-pointer rounded-full bg-ink px-6 py-2.5 text-[15px] font-bold text-cream shadow-[3px_3px_0_rgba(199,62,29,0.4)] hover:bg-ink-hover"
+                  >
+                    장바구니 확인하기
+                  </button>
+                </div>
+              ) : chat.type === "recipe" ? (
+                <div className="max-w-200 self-start rounded-md border-2 border-ink bg-surface px-6 py-5 shadow-[4px_5px_0_rgba(43,58,85,0.15)]">
+                  <div className="text-[23px] font-extrabold tracking-[-0.5px] text-ink">
+                    {chat.dish}
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-x-3.5 gap-y-2.5">
+                    {chat.products.map((product) => (
+                      <a
+                        key={product.id}
+                        href={`https://lottemartzetta.com/products/${product.id}/details`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2.5 rounded-md border-[1.5px] border-dashed border-paper-border-dashed bg-paper px-3 py-2.5 hover:border-market-red"
+                      >
+                        <span className="text-[15px] font-medium text-foreground">
+                          {product.name}
+                        </span>
+                        <span className="ml-auto flex-none rounded-[3px] border-[1.5px] border-market-red bg-white px-2 py-0.5 text-[14px] font-bold text-market-red">
+                          {product.price}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               ) : chat.role === "user" ? (
                 <div className="max-w-200 self-end rounded-[18px_18px_4px_18px] bg-ink px-5 py-3.5 text-[17px]/[1.6] font-medium text-cream">
                   {chat.content}
