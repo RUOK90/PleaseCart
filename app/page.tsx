@@ -41,7 +41,7 @@ export default function Home(): JSX.Element {
 
   return (
     <div className="flex h-screen flex-col bg-paper">
-      <header className="flex flex-none items-center gap-4 border-b-4 border-market-red bg-ink px-7 py-3.5">
+      <header className="flex flex-none items-center gap-4 border-b-4 border-market-red bg-ink px-20 py-3.5">
         <div className="flex size-11 items-center justify-center rounded-full border-2 border-dashed border-cream bg-market-red text-[18px] font-extrabold text-cream">
           장
         </div>
@@ -56,7 +56,7 @@ export default function Home(): JSX.Element {
       <div className="flex min-h-0 flex-1 flex-col bg-[repeating-linear-gradient(0deg,var(--color-paper)_0_46px,var(--color-paper-line)_46px_48px)]">
         <div
           ref={listRef}
-          className="mx-auto scrollbar-hidden flex w-full max-w-280 flex-1 flex-col gap-[18px] overflow-y-auto px-8 py-[26px]"
+          className="mx-auto scrollbar-hidden flex w-full max-w-280 flex-1 flex-col gap-4 overflow-y-auto px-8 py-6"
         >
           {chats.map((chat, i) => (
             <div key={i} className="flex flex-none animate-pop-in flex-col">
@@ -65,7 +65,7 @@ export default function Home(): JSX.Element {
                   {chat.content}
                 </div>
               ) : (
-                <div className="max-w-200 rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-5 py-4 text-[17px]/[1.65] font-medium text-foreground shadow-[2px_3px_0_rgba(43,58,85,0.08)]">
+                <div className="max-w-200 self-start rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-5 py-4 text-[17px]/[1.65] font-medium text-foreground shadow-[2px_3px_0_rgba(43,58,85,0.08)]">
                   {chat.content}
                 </div>
               )}
@@ -74,7 +74,7 @@ export default function Home(): JSX.Element {
 
           {isBusy && (
             <div className="flex flex-none animate-pop-in">
-              <div className="flex items-center gap-1.5 rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-[22px] py-[18px]">
+              <div className="flex items-center gap-1.5 rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-6 py-4">
                 <span className="size-2 animate-blink rounded-full bg-market-red" />
                 <span className="size-2 animate-blink rounded-full bg-market-red [animation-delay:0.2s]" />
                 <span className="size-2 animate-blink rounded-full bg-market-red [animation-delay:0.4s]" />
@@ -83,8 +83,8 @@ export default function Home(): JSX.Element {
           )}
         </div>
 
-        <div className="mx-auto w-full max-w-280 flex-none px-8 pb-[22px]">
-          <div className="flex items-center rounded-full border-2 border-ink bg-surface px-[26px] py-3.5 shadow-[3px_4px_0_rgba(43,58,85,0.12)]">
+        <div className="mx-auto w-full max-w-280 flex-none px-8 pt-4 pb-6">
+          <div className="flex items-center rounded-full border-2 border-ink bg-surface px-6 py-3.5 shadow-[3px_4px_0_rgba(43,58,85,0.12)]">
             <input
               type="text"
               value={userInput}
