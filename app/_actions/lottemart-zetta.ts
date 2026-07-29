@@ -1,6 +1,6 @@
 "use server";
 
-import { Product } from "@/dto/product";
+import { Product } from "@/app/_dto/product";
 import { chromium, type Browser, type Page } from "playwright";
 
 let browserPromise: Promise<Browser> | null = null;
@@ -54,30 +54,34 @@ export const searchProducts = async (
         if (!name || products.has(name)) continue;
 
         // 상품 id, 상품 정보 텍스트
-        const { id, productCardText } = await addToCartButton.evaluate((e) => {
-          const card = e.closest(".product-card-container") as HTMLElement;
-          const href = card
-            .querySelector("a[href*='/products/']")!
-            .getAttribute("href")!;
-          return {
-            id: href.match(/\/products\/([^/]+)\/details/)![1],
-            productCardText: card.innerText,
-          };
-        });
+        const { id, productCardText } = await addToCartButton.evaluate(
+          (element) => {
+            const card = element.closest(
+              ".product-card-container",
+            ) as HTMLElement;
+            const href = card
+              .querySelector("a[href*='/products/']")!
+              .getAttribute("href")!;
+            return {
+              id: href.match(/\/products\/([^/]+)\/details/)![1],
+              productCardText: card.innerText,
+            };
+          },
+        );
         const productCardLines = productCardText
           .split("\n")
-          .map((e) => e.trim());
+          .map((line) => line.trim());
 
         // 리뷰
         const review = productCardLines
-          .find((e) => e.startsWith("평점 5점 만점에"))!
+          .find((line) => line.startsWith("평점 5점 만점에"))!
           .match(/^평점 5점 만점에 ([\d.]+), 리뷰 (\d+)개$/);
         const averageReviewScore = review ? Number(review[1]) : 0;
         const reviewCount = review ? Number(review[2]) : 0;
 
         // 단위당 가격
         const pricePerQuantity = productCardLines
-          .find((e) => /^\(.*당\s*[\d,]+원\)$/.test(e))!
+          .find((line) => /^\(.*당\s*[\d,]+원\)$/.test(line))!
           .slice(1, -1);
 
         // 총 가격
@@ -113,6 +117,15 @@ export const searchProducts = async (
   return [...products.values()];
 };
 
+export const batchSearchProducts = async (
+  queries: string[],
+  limit = 20,
+): Promise<Product[][]> => {
+  return await Promise.all(
+    queries.map((query) => searchProducts(query, limit)),
+  );
+};
+
 export const getCart = async (products: Product[]): Promise<string> => {
   const page = await getPage();
 
@@ -143,7 +156,7 @@ export const getCart = async (products: Product[]): Promise<string> => {
   await page.waitForTimeout(1000);
 
   const cookies = await page.context().cookies("https://lottemartzetta.com");
-  return cookies.find((e) => e.name === "global_sid")!.value;
+  return cookies.find((cookie) => cookie.name === "global_sid")!.value;
 };
 
 export const closeBrowser = async (): Promise<void> => {
