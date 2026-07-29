@@ -38,7 +38,8 @@ export default function Home(): JSX.Element {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter") send();
+    // 조합을 확정하는 Enter는 흘려보낸다. 여기서 전송하면 확정된 글자가 입력창에 남는다
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) send();
   };
 
   return (
