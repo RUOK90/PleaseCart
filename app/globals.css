@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf4e4;
+  --foreground: #3e3527;
 }
 
 @theme inline {
@@ -10,4 +10,62 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* 종이 */
+  --color-paper: #fbf4e4;
+  --color-paper-line: #f6edd8;
+  --color-surface: #fffdf6;
+  --color-paper-border: #d8c9a7;
+  --color-paper-border-dashed: #c9b888;
+
+  /* 잉크 남색 */
+  --color-ink: #2b3a55;
+  --color-ink-hover: #1f2c42;
+
+  /* 시장 색 */
+  --color-market-red: #c73e1d;
+  --color-market-yellow: #f2c14e;
+  --color-cream: #fff6e8;
+
+  /* 텍스트 */
+  --color-muted: #7a6c54;
+  --color-placeholder: #a99b82;
+
+  /* 담기 확인 */
+  --color-success-surface: #eaf3e4;
+  --color-success-border: #6b9b5e;
+  --color-success-foreground: #3f6b33;
+
+  --animate-pop-in: pop-in 0.35s ease both;
+  --animate-blink: blink 1.2s infinite;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
