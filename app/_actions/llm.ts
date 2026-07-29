@@ -57,7 +57,7 @@ export const getIngredients = async (
   const instructions = [
     "너는 주어진 요리를 만들기 위해 마트에서 사야 할 재료를 정리해주는 요리 재료 선정 장인이다.",
     "주어진 요리를 만드는 데 필요한 재료를 나열해라.",
-    "각 재료는 네가 마트 검색창에 입력할 검색어로 쓰이므로 수식어 없는 일반적인 상품명으로 써라. (예: '신선한 국내산 돼지고기' 대신 '돼지고기')",
+    "각 재료는 네가 마트 검색창에 입력할 검색어로 쓰이므로 수식어 없는 일반적인 상품명으로 써라 (예: '신선한 국내산 돼지고기' 대신 '돼지고기').",
     "중복되는 재료를 넣지 말고, 마트에서 살 수 있는 재료만 나열해라.",
   ].join("\n");
 
@@ -91,11 +91,11 @@ export const selectProduct = async (
   const instructions = [
     "너는 요리에 넣을 재료로 쓸 상품을 마트 검색 결과에서 고르는 상품 선택 장인이다.",
     "각 상품은 id(id), 이름(name), 리뷰 개수(reviewCount), 리뷰 평점(averageReviewScore), 가격(price), 단위당 가격(pricePerQuantity) 정보를 가진다.",
-    "상품들의 이름, 리뷰 개수, 리뷰 평점, 가격, 단위당 가격을 모두 고려해서 다음의 판단 기준에 따라 action을 취해라.",
+    "상품들의 이름, 리뷰 개수, 리뷰 평점, 가격, 단위당 가격을 모두 고려해서 다음의 판단 기준에 따라 action을 취하고, 사용자에게 보여줄 응답을 작성해라.",
     "판단 기준:",
-    "- 적당한 상품이 있으면 action: select, id에 해당 상품의 id를 담아라.",
-    "- 적당한 상품이 없지만 주어진 재료 대신에 요리에 사용할 수 있는 다른 재료가 있으면 action: replace, ingredient에 대체 재료를 담아라. 대체 재료는 네가 마트 검색창에 입력할 검색어로 쓰이므로 수식어 없는 일반적인 상품명으로 써라. (예: '신선한 국내산 돼지고기' 대신 '돼지고기')",
-    "- 대체 재료도 마땅치 않으면 action: fail",
+    "- 적당한 상품이 있으면 action: select, id에 해당 상품의 id를 담아라. response에는 어떤 재료에 어떤 상품을 담았는지와 그 상품을 고른 이유를 담아라.",
+    "- 적당한 상품이 없지만 주어진 재료 대신에 요리에 사용할 수 있는 다른 재료가 있으면 action: replace, ingredient에 대체 재료를 담아라. 대체 재료는 네가 마트 검색창에 입력할 검색어로 쓰이므로 수식어 없는 일반적인 상품명으로 써라 (예: '신선한 국내산 돼지고기' 대신 '돼지고기'). response에는 주어진 재료에 마땅한 상품이 없어서 다른 재료로 바꿔 다시 찾아보겠다는 내용을 담아라.",
+    "- 대체 재료도 마땅치 않으면 action: fail. response에는 주어진 재료에 마땅한 상품을 찾지 못했고, 대체할 재료도 없다는 내용을 담아라.",
   ].join("\n");
 
   const prompt = [
@@ -123,6 +123,9 @@ export const selectProduct = async (
           .string()
           .optional()
           .describe("action이 replace일 때, 대체 재료"),
+        response: z
+          .string()
+          .describe("사용자에게 보여줄 자연스러운 대화체 응답"),
       }),
     }),
     instructions,
@@ -130,10 +133,41 @@ export const selectProduct = async (
   });
 
   if (output.action === "select" && output.id) {
-    return { action: "select", id: output.id };
+    return {
+      action: "select",
+      id: output.id,
+      response: output.response,
+    };
   }
   if (output.action === "replace" && output.ingredient) {
-    return { action: "replace", ingredient: output.ingredient };
+    return {
+      action: "replace",
+      ingredient: output.ingredient,
+      response: output.response,
+    };
   }
-  return { action: "fail" };
+  return {
+    action: "fail",
+    response: output.response,
+  };
+};
+
+export const batchSelectProduct = async (
+  dish: string,
+  params: {
+    ingredient: string;
+    products: Product[];
+    failedIngredients: string[];
+  }[],
+): Promise<SelectProductResponse[]> => {
+  return await Promise.all(
+    params.map((param) =>
+      selectProduct(
+        dish,
+        param.ingredient,
+        param.products,
+        param.failedIngredients,
+      ),
+    ),
+  );
 };
