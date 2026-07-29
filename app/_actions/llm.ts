@@ -151,23 +151,3 @@ export const selectProduct = async (
     response: output.response,
   };
 };
-
-export const batchSelectProduct = async (
-  dish: string,
-  params: {
-    ingredient: string;
-    products: Product[];
-    failedIngredients: string[];
-  }[],
-): Promise<SelectProductResponse[]> => {
-  return await Promise.all(
-    params.map((param) =>
-      selectProduct(
-        dish,
-        param.ingredient,
-        param.products,
-        param.failedIngredients,
-      ),
-    ),
-  );
-};
