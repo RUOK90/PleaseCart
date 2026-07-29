@@ -1,4 +1,15 @@
+import { Product } from "@/app/_dto/product";
+
 const EXTENSION_ID = "kfdpecnbgglcnecdipkdebjbodblkebi";
+
+// 상품 가격은 "8,900원" 형태의 문자열이라 숫자만 남겨 합산한다
+export const getTotalPrice = (products: Product[]): string => {
+  const total = products.reduce(
+    (sum, product) => sum + Number(product.price.replace(/[^0-9]/g, "")),
+    0,
+  );
+  return `${total.toLocaleString("ko-KR")}원`;
+};
 
 type OpenCartResponse = { ok: true } | { ok: false; error?: string };
 

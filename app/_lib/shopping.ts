@@ -130,7 +130,18 @@ export const shopping = async (
     // 선택된 상품 장바구니에 담기
     addChat({ type: "text", role: "agent", content: "장바구니에 담는 중..." });
     globalSid = await getCart(selectedProducts);
-    addChat({ type: "cart", role: "agent", globalSid });
+    addChat({
+      type: "recipe",
+      role: "agent",
+      dish: recommendDishResponse.dish,
+      products: selectedProducts,
+    });
+    addChat({
+      type: "cart",
+      role: "agent",
+      products: selectedProducts,
+      globalSid,
+    });
     break;
   }
 
