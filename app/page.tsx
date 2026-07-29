@@ -74,7 +74,7 @@ export default function Home(): JSX.Element {
 
           {isBusy && (
             <div className="flex flex-none animate-pop-in">
-              <div className="flex items-center gap-1.5 rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-6 py-4">
+              <div className="flex items-center gap-1.5 rounded-[4px_18px_18px_18px] border-[1.5px] border-paper-border bg-surface px-6 py-5">
                 <span className="size-2 animate-blink rounded-full bg-market-red" />
                 <span className="size-2 animate-blink rounded-full bg-market-red [animation-delay:0.2s]" />
                 <span className="size-2 animate-blink rounded-full bg-market-red [animation-delay:0.4s]" />
