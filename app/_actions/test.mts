@@ -1,4 +1,4 @@
-import { Product } from "@/dto/product";
+import { Product } from "@/app/_dto/product";
 import { closeBrowser, getCart, searchProducts } from "./lottemart-zetta";
 
 const queries = ["계란", "고추장", "제육"];
