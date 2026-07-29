@@ -1,11 +1,11 @@
 import { Chat } from "@/app/_dto/chat";
 import { Product } from "@/app/_dto/product";
+import { getIngredients, recommendDish, selectProduct } from "../_actions/llm";
 import {
-  batchSelectProduct,
-  getIngredients,
-  recommendDish,
-} from "../_actions/llm";
-import { batchSearchProducts, getCart } from "../_actions/lottemart-zetta";
+  closeBrowser,
+  getCart,
+  searchProducts,
+} from "../_actions/lottemart-zetta";
 
 type UnresolvedIngredient = {
   ingredient: string;
@@ -18,9 +18,10 @@ const failedDishes: string[] = [];
 export const shopping = async (
   userInput: string,
   addChat: (chat: Chat) => void,
-): Promise<string | null> => {
+): Promise<string> => {
   addChat({ role: "user", content: userInput });
 
+  let globalSid = "";
   for (let dishAttempt = 0; dishAttempt < 3; dishAttempt++) {
     // 요리 결정
     const recommendDishResponse = await recommendDish(
@@ -51,35 +52,22 @@ export const shopping = async (
       productAttempt < 3 && unresolvedIngredients.length > 0;
       productAttempt++
     ) {
-      addChat({
-        role: "agent",
-        content: `${unresolvedIngredients.map((unresolvedIngredient) => unresolvedIngredient.ingredient).join(", ")} 검색 중...`,
-      });
-
-      // 재료에 대한 상품 검색 병렬 수행
-      const candidateProducts = await batchSearchProducts(
-        unresolvedIngredients.map(
-          (unresolvedIngredient) => unresolvedIngredient.ingredient,
-        ),
-      );
-
-      // 검색된 상품들에서 적합한 상품 선택 병렬 수행
-      const selectProductResponses = await batchSelectProduct(
-        recommendDishResponse.dish,
-        unresolvedIngredients.map((unresolvedIngredient, i) => ({
-          ...unresolvedIngredient,
-          products: candidateProducts[i],
-        })),
-      );
-
       const nextUnresolvedIngredients: UnresolvedIngredient[] = [];
 
-      // 상품 선택 결과를 채팅에 반영
-      selectProductResponses.forEach((selectProductResponse, i) => {
-        if (isDishFailed) return;
+      // 재료 하나씩 검색과 상품 선택을 순차 수행
+      for (const { ingredient, failedIngredients } of unresolvedIngredients) {
+        addChat({ role: "agent", content: `${ingredient} 검색 중...` });
+
+        const candidateProducts = await searchProducts(ingredient);
+        const selectProductResponse = await selectProduct(
+          recommendDishResponse.dish,
+          ingredient,
+          candidateProducts,
+          failedIngredients,
+        );
 
         if (selectProductResponse.action === "select") {
-          const product = candidateProducts[i].find(
+          const product = candidateProducts.find(
             (candidateProduct) =>
               candidateProduct.id === selectProductResponse.id,
           );
@@ -89,23 +77,20 @@ export const shopping = async (
               role: "agent",
               content: selectProductResponse.response,
             });
-            return;
+            continue;
           }
         }
 
         if (selectProductResponse.action === "replace") {
           nextUnresolvedIngredients.push({
             ingredient: selectProductResponse.ingredient,
-            failedIngredients: [
-              ...unresolvedIngredients[i].failedIngredients,
-              unresolvedIngredients[i].ingredient,
-            ],
+            failedIngredients: [...failedIngredients, ingredient],
           });
           addChat({
             role: "agent",
             content: selectProductResponse.response,
           });
-          return;
+          continue;
         }
 
         isDishFailed = true;
@@ -113,7 +98,8 @@ export const shopping = async (
           role: "agent",
           content: selectProductResponse.response,
         });
-      });
+        break;
+      }
 
       if (isDishFailed) break;
 
@@ -128,15 +114,11 @@ export const shopping = async (
 
     // 선택된 상품 장바구니에 담기
     addChat({ role: "agent", content: "장바구니에 담는 중..." });
-    const globalSid = await getCart(selectedProducts);
+    globalSid = await getCart(selectedProducts);
     addChat({ role: "agent", content: `장바구니에 다 담았어요! ${globalSid}` });
-    return globalSid;
   }
 
-  addChat({
-    role: "agent",
-    content: "죄송해요, 재료를 구할 수 있는 요리를 찾지 못했어요",
-  });
+  await closeBrowser();
 
-  return null;
+  return globalSid;
 };

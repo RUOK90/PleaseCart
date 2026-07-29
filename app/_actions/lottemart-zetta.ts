@@ -9,7 +9,7 @@ export const getPage = async (
   userAgent: string = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
 ): Promise<Page> => {
   if (!browserPromise) {
-    browserPromise = chromium.launch({ headless: true, channel: "chrome" });
+    browserPromise = chromium.launch({ headless: false, channel: "chrome" });
   }
   const browser = await browserPromise;
   return await browser.newPage({ userAgent });
@@ -114,16 +114,9 @@ export const searchProducts = async (
     await page.waitForTimeout(1000);
   }
 
-  return [...products.values()];
-};
+  await page.close();
 
-export const batchSearchProducts = async (
-  queries: string[],
-  limit = 20,
-): Promise<Product[][]> => {
-  return await Promise.all(
-    queries.map((query) => searchProducts(query, limit)),
-  );
+  return [...products.values()];
 };
 
 export const getCart = async (products: Product[]): Promise<string> => {
@@ -156,7 +149,13 @@ export const getCart = async (products: Product[]): Promise<string> => {
   await page.waitForTimeout(1000);
 
   const cookies = await page.context().cookies("https://lottemartzetta.com");
-  return cookies.find((cookie) => cookie.name === "global_sid")!.value;
+  const globalSid = cookies.find(
+    (cookie) => cookie.name === "global_sid",
+  )!.value;
+
+  await page.close();
+
+  return globalSid;
 };
 
 export const closeBrowser = async (): Promise<void> => {
